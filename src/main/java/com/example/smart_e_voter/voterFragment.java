@@ -6,6 +6,8 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,6 +16,13 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -21,6 +30,12 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
  * create an instance of this fragment.
  */
 public class voterFragment extends Fragment {
+
+    RecyclerView recyclerView;
+    ArrayList<store_dp> list;
+    DatabaseReference databaseReference;
+    entry adapter;
+
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -62,7 +77,6 @@ public class voterFragment extends Fragment {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
 
-
         }
     }
 
@@ -78,11 +92,32 @@ public class voterFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         FloatingActionButton float_add_voter = view.findViewById(R.id.floatingActionButton_add_voter);
+        recyclerView = view.findViewById(R.id.cycleview);
+        databaseReference = FirebaseDatabase.getInstance().getReference("users");
+        list = new ArrayList<>();
+        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        adapter = new entry(getActivity(), list);
+        recyclerView.setAdapter(adapter);
+        databaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                    store_dp user = dataSnapshot.getValue(store_dp.class);
+                    list.add(user);
+                }
+                adapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
 
         float_add_voter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(getContext(), addvoter.class);
+                Intent intent = new Intent(getActivity(), addvoter.class);
                 startActivity(intent);
             }
         });
